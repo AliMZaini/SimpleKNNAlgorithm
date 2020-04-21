@@ -1,3 +1,6 @@
+import getopt
+import sys
+
 import pandas
 
 
@@ -29,9 +32,15 @@ def is_smaller_find(find, closest_rows):
         return smallest_distance_index
 
 
-def predict(features, df):
-    # [classification, distance]
-    closest_rows = [[None, None, None, None, None], [None, None, None, None, None]]  # k = 5
+def get_initial_rows(k):
+    x = []
+    for i in range(k):
+        x.append(None)
+    return [x, x.copy()]
+
+
+def get_classification(df, k, features):
+    closest_rows = get_initial_rows(k)
 
     for row in df.values:
         row_classification = row[0]
@@ -45,4 +54,31 @@ def predict(features, df):
     return mode(closest_rows[0])
 
 
-print(predict([30, 100], get_data_frame("weight-height.csv")))
+# TODO add validation
+if __name__ == '__main__':
+    data_url = None
+    k = 11
+    features = None
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hd:k:q:", ["help", "data=", "features="])
+    except getopt.GetoptError:
+        print("SimpleKNN.py -d <data_url> -k <k_value> -q <query_features>")
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            # TODO add more help information
+            print("usage: SimpleKNN.py -d <data_url> -k <k_value> -q <query_features>")
+            sys.exit(2)
+        elif opt in ("-d", "--data"):
+            data_url = arg
+        elif opt in ("-q", "--features"):
+            features = list(map(int, arg.split(",")))
+        elif opt == "-k":
+            k = arg
+
+    if data_url is not None and features is not None:
+        print("Classification: {}".format(get_classification(get_data_frame(data_url), int(k), features)))
+
+# python SimpleKNN.py -d weight-height.csv -k 5 --features 70,170
